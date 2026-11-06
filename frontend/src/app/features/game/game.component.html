@@ -1,0 +1,259 @@
+<div class="game-viewport">
+  <!-- 3D WebGL Canvas -->
+  <canvas #gameCanvas class="webgl-canvas"></canvas>
+
+  <!-- Red Damage Screen Flash Overlay -->
+  <div class="damage-flash-overlay" *ngIf="tookDamageFlash()"></div>
+
+  <!-- Eliminated Spectator Banner -->
+  <div class="eliminated-banner glass-panel" *ngIf="isEliminated()">
+    <span class="skull-icon">💀</span>
+    <div class="eliminated-text">
+      <h3 class="font-display">YOU HAVE BEEN ELIMINATED!</h3>
+      <p>Spectating remaining contenders in the arena...</p>
+    </div>
+  </div>
+
+  <!-- Fullscreen HUD Overlay -->
+  <div class="hud-overlay">
+    <!-- Top Bar -->
+    <div class="hud-top">
+      <!-- Player Profile, Health & Kills Status -->
+      <div class="player-hud-card glass-panel" [class.eliminated]="isEliminated()">
+        <div class="hud-player-info">
+          <div class="hud-color-indicator" [style.backgroundColor]="state.profile().color"></div>
+          <div class="hud-name-wrapper">
+            <span class="hud-player-name">{{ state.profile().name }}</span>
+            <span class="hud-role-tag font-display">{{ isEliminated() ? 'SPECTATOR' : state.isHost() ? 'HOST RACER' : 'CONTENDER' }}</span>
+          </div>
+
+          <div class="hud-kills-badge">
+            <span class="kills-icon">🎯</span>
+            <span class="kills-count font-display">{{ eliminationCount() }} KILLS</span>
+          </div>
+        </div>
+
+        <div class="health-bar-container">
+          <div class="health-bar-track">
+            <div
+              class="health-bar-fill"
+              [style.width.%]="currentHealth()"
+              [class.low]="currentHealth() <= 25"
+              [class.med]="currentHealth() > 25 && currentHealth() <= 50"
+            ></div>
+          </div>
+          <div class="health-text font-display">
+            <span>HEALTH POINTS</span>
+            <strong [class.dead]="isEliminated()">{{ isEliminated() ? 'ELIMINATED' : currentHealth() + ' / 100 HP' }}</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- Top Right: Match Stats & Live Mini-Leaderboard -->
+      <div class="hud-top-right-group">
+        <div class="match-hud-card glass-panel">
+          <div class="hud-room-code">
+            <span class="label font-display">ARENA</span>
+            <span class="code font-display glow-cyan">{{ state.currentRoom()?.code || 'PRACTICE' }}</span>
+          </div>
+          <div class="hud-players-count">
+            <span>SURVIVORS ALIVE:</span>
+            <strong class="glow-cyan">{{ remainingAliveCount() }} / {{ state.currentRoom()?.players?.length || 1 }}</strong>
+          </div>
+
+          <div class="hud-top-actions">
+            <button class="btn-hud-icon" (click)="toggleLeaderboard()" title="Toggle Leaderboard (TAB)">
+              🏆 RANKS
+            </button>
+            <button class="btn-hud-icon" (click)="toggleControlsHelp()" title="Controls Information">
+              🎮 CONTROLS
+            </button>
+            <button class="btn-hud-icon btn-hud-danger" (click)="leaveMatch()" title="Leave Match">
+              🚪 EXIT
+            </button>
+          </div>
+        </div>
+
+        <!-- Live Mini-Leaderboard -->
+        <div class="mini-leaderboard glass-panel" *ngIf="state.liveLeaderboard().length > 0">
+          <div class="mini-lb-header">
+            <span class="font-display">LEADERBOARD</span>
+            <span class="mini-lb-hint font-display">TAB</span>
+          </div>
+          <div class="mini-lb-list">
+            <div
+              *ngFor="let item of state.liveLeaderboard()"
+              class="mini-lb-row"
+              [class.eliminated]="!item.isAlive"
+              [class.self]="item.playerId === socket.socketId()"
+            >
+              <span class="mini-lb-rank font-display">#{{ item.rank }}</span>
+              <span class="mini-lb-color" [style.backgroundColor]="item.color"></span>
+              <span class="mini-lb-name">{{ item.playerName }}</span>
+              <span class="mini-lb-kills">🎯 {{ item.eliminations }}</span>
+              <span class="mini-lb-health" [class.dead]="!item.isAlive">
+                {{ item.isAlive ? item.health + ' HP' : 'DEAD' }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Center Screen Boost Speed Lines -->
+    <div class="boost-speed-lines" *ngIf="isBoosting()"></div>
+
+    <!-- Bottom HUD Bar -->
+    <div class="hud-bottom">
+      <!-- Skills Card (Nitro Boost & Rocket Launcher) -->
+      <div class="skills-card glass-panel" [class.disabled]="isEliminated()">
+        <!-- Nitro Boost Skill -->
+        <div
+          class="skill-item"
+          [class.ready]="boostAvailable() && !isEliminated()"
+          [class.active]="isBoosting()"
+          (click)="triggerBoost()"
+        >
+          <div class="skill-icon-wrapper">
+            <span class="skill-icon">⚡</span>
+            <div
+              *ngIf="!boostAvailable() && !isEliminated()"
+              class="cooldown-overlay"
+              [style.height.%]="100 - boostCooldownPct()"
+            ></div>
+          </div>
+          <div class="skill-meta">
+            <span class="skill-key font-display">SHIFT</span>
+            <span class="skill-label">{{ isBoosting() ? 'NITRO ACTIVE!' : boostAvailable() && !isEliminated() ? 'NITRO READY' : 'RECHARGING' }}</span>
+          </div>
+        </div>
+
+        <!-- Rocket Launcher Skill -->
+        <div
+          class="skill-item"
+          [class.ready]="rocketAvailable() && !isEliminated()"
+          (click)="fireRocket()"
+        >
+          <div class="skill-icon-wrapper">
+            <span class="skill-icon">🚀</span>
+            <div
+              *ngIf="!rocketAvailable() && !isEliminated()"
+              class="cooldown-overlay"
+              [style.height.%]="100 - rocketCooldownPct()"
+            ></div>
+          </div>
+          <div class="skill-meta">
+            <span class="skill-key font-display">SPACE</span>
+            <span class="skill-label">{{ isEliminated() ? 'DISABLED' : rocketAvailable() ? 'ROCKET READY' : 'RELOADING' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Speedometer -->
+      <div class="speedometer-card glass-panel">
+        <div class="speed-number font-display glow-cyan">{{ currentSpeed() }}</div>
+        <div class="speed-unit font-display">KM/H</div>
+        <div class="speed-bar">
+          <div class="speed-bar-fill" [style.width.%]="(currentSpeed() / 80) * 100"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Controls Help Modal -->
+  <div *ngIf="showControlsHelp()" class="modal-backdrop" (click)="toggleControlsHelp()">
+    <div class="modal-box glass-panel" (click)="$event.stopPropagation()">
+      <h2 class="font-display">ARENA CONTROLS & WEAPONS</h2>
+      <div class="controls-grid">
+        <div class="control-row">
+          <span class="key-badge">W / ↑</span>
+          <span>Accelerate Forward</span>
+        </div>
+        <div class="control-row">
+          <span class="key-badge">S / ↓</span>
+          <span>Reverse / Brake</span>
+        </div>
+        <div class="control-row">
+          <span class="key-badge">A / ←</span>
+          <span>Steer Left</span>
+        </div>
+        <div class="control-row">
+          <span class="key-badge">D / →</span>
+          <span>Steer Right</span>
+        </div>
+        <div class="control-row">
+          <span class="key-badge special">SPACE</span>
+          <span>Launch Rocket (25 HP Damage • 2s Cooldown)</span>
+        </div>
+        <div class="control-row">
+          <span class="key-badge special">SHIFT</span>
+          <span>Nitro Speed Boost (1.6x Speed • 3s Duration)</span>
+        </div>
+      </div>
+      <button class="btn btn-cyan btn-full" (click)="toggleControlsHelp()">RESUME BATTLE</button>
+    </div>
+  </div>
+
+  <!-- Full Live Leaderboard Modal Overlay (TAB key) -->
+  <div *ngIf="showLeaderboardOverlay()" class="modal-backdrop" (click)="toggleLeaderboard()">
+    <div class="modal-box leaderboard-modal glass-panel" (click)="$event.stopPropagation()">
+      <div class="lb-modal-header">
+        <h2 class="font-display">🏆 LIVE ARENA LEADERBOARD</h2>
+        <span class="lb-modal-sub">Press TAB to close</span>
+      </div>
+
+      <div class="lb-table-wrapper">
+        <table class="lb-table">
+          <thead>
+            <tr>
+              <th>RANK</th>
+              <th>RACER</th>
+              <th>KILLS</th>
+              <th>HEALTH</th>
+              <th>SCORE</th>
+              <th>STATUS</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              *ngFor="let p of state.liveLeaderboard()"
+              [class.eliminated-row]="!p.isAlive"
+              [class.self-row]="p.playerId === socket.socketId()"
+            >
+              <td class="font-display rank-cell">
+                <span *ngIf="p.rank === 1" class="medal">🥇</span>
+                <span *ngIf="p.rank === 2" class="medal">🥈</span>
+                <span *ngIf="p.rank === 3" class="medal">🥉</span>
+                #{{ p.rank }}
+              </td>
+              <td class="name-cell">
+                <span class="color-dot" [style.backgroundColor]="p.color"></span>
+                <span class="name-text">{{ p.playerName }}</span>
+                <span *ngIf="p.playerId === socket.socketId()" class="you-badge font-display">YOU</span>
+              </td>
+              <td class="kills-cell font-display">{{ p.eliminations }}</td>
+              <td class="health-cell">
+                <div class="lb-health-bar">
+                  <div
+                    class="lb-health-fill"
+                    [style.width.%]="p.health"
+                    [class.low]="p.health <= 25"
+                  ></div>
+                </div>
+                <span>{{ p.health }}%</span>
+              </td>
+              <td class="score-cell font-display">{{ p.score }}</td>
+              <td class="status-cell">
+                <span class="status-pill" [class.alive]="p.isAlive" [class.dead]="!p.isAlive">
+                  {{ p.isAlive ? 'ALIVE' : 'ELIMINATED' }}
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <button class="btn btn-cyan btn-full" (click)="toggleLeaderboard()">CLOSE LEADERBOARD (TAB)</button>
+    </div>
+  </div>
+</div>

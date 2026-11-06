@@ -1,0 +1,230 @@
+<div class="home-page">
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <div class="hero-content">
+      <div class="badge-tag">MULTIPLAYER 3D ARENA ACTION</div>
+      <h1 class="hero-title">
+        KART BATTLE <span class="highlight">ARENA</span>
+      </h1>
+      <p class="hero-subtitle">
+        Blast your teammates with rockets, drift through neon curves, and claim victory in the ultimate Last Kart Standing showdown!
+      </p>
+
+      <!-- Action Buttons -->
+      <div class="action-buttons">
+        <button class="btn btn-cyan" (click)="openCreateModal()">
+          <span>🎮</span> CREATE PRIVATE ROOM
+        </button>
+        <button class="btn btn-pink" (click)="openJoinModal()">
+          <span>🔑</span> JOIN WITH CODE
+        </button>
+        <button class="btn btn-outline" routerLink="/game">
+          <span>🏎️</span> PRACTICE ARENA
+        </button>
+      </div>
+
+      <!-- Live Diagnostics Banner -->
+      <div class="diagnostics-card glass-panel">
+        <div class="diag-header">
+          <div class="diag-title font-display">
+            <span class="pulse-icon">⚡</span> SERVER & NETWORKING STATUS
+          </div>
+          <button class="btn-refresh" (click)="checkHealth()" [disabled]="isCheckingHealth()">
+            {{ isCheckingHealth() ? 'CHECKING...' : 'REFRESH' }}
+          </button>
+        </div>
+
+        <div *ngIf="healthData() as health" class="diag-grid">
+          <div class="diag-item">
+            <span class="label">API STATUS</span>
+            <span class="value ok">{{ health.status | uppercase }}</span>
+          </div>
+          <div class="diag-item">
+            <span class="label">DATABASE</span>
+            <span class="value" [class.ok]="health.database.status === 'connected'" [class.warn]="health.database.status !== 'connected'">
+              {{ health.database.status | uppercase }}
+            </span>
+          </div>
+          <div class="diag-item">
+            <span class="label">SOCKET CONNECTED</span>
+            <span class="value" [class.ok]="socket.isConnected()" [class.err]="!socket.isConnected()">
+              {{ socket.isConnected() ? 'ONLINE' : 'OFFLINE' }}
+            </span>
+          </div>
+          <div class="diag-item">
+            <span class="label">SOCKET LATENCY</span>
+            <span class="value">{{ socket.isConnected() ? socket.latencyMs() + ' ms' : '--' }}</span>
+          </div>
+          <div class="diag-item">
+            <span class="label">ACTIVE ROOMS</span>
+            <span class="value">{{ health.multiplayer.activeRooms }}</span>
+          </div>
+          <div class="diag-item">
+            <span class="label">CONNECTED CLIENTS</span>
+            <span class="value">{{ health.multiplayer.connectedSockets }}</span>
+          </div>
+        </div>
+
+        <div *ngIf="healthError()" class="diag-error">
+          ⚠️ {{ healthError() }} - Backend may still be initializing or starting on port 3000.
+        </div>
+      </div>
+    </div>
+
+    <!-- 3D Kart Customizer Card -->
+    <div class="preview-card glass-panel">
+      <div class="preview-header">
+        <span class="font-display">RACER GARAGE</span>
+        <span class="neon-pill">3D PREVIEW</span>
+      </div>
+
+      <div class="canvas-wrapper">
+        <canvas #previewCanvas class="preview-canvas"></canvas>
+      </div>
+
+      <div class="profile-form">
+        <div class="form-group">
+          <label class="form-label">CALLSIGN / NAME</label>
+          <input
+            type="text"
+            class="arcade-input"
+            [(ngModel)]="playerName"
+            (ngModelChange)="onNameChange()"
+            maxlength="16"
+            placeholder="Enter Racer Name..."
+          />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">CHOOSE KART COLOR</label>
+          <div class="color-palette">
+            <button
+              *ngFor="let color of availableColors"
+              class="color-dot"
+              [style.backgroundColor]="color"
+              [class.active]="selectedColor === color"
+              (click)="onColorSelect(color)"
+            ></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How to Play & Controls Section -->
+  <section class="info-section">
+    <div class="info-grid">
+      <!-- How To Play -->
+      <div class="info-card glass-panel">
+        <div class="info-card-header">
+          <span class="icon">🎯</span>
+          <h2 class="card-title font-display">HOW TO PLAY</h2>
+        </div>
+        <ul class="rule-list">
+          <li><strong>Spawn:</strong> 2 to 8 players join a private battle arena in real time.</li>
+          <li><strong>Health:</strong> Every kart enters the fray with <strong>100 HP</strong>.</li>
+          <li><strong>Rockets:</strong> Launch guided rockets to deal <strong>25 damage</strong> per hit.</li>
+          <li><strong>Nitro Boost:</strong> Engage high-speed boost to dodge attacks or ram opponents.</li>
+          <li><strong>Victory:</strong> Last Kart Standing takes home glory and leaderboard points!</li>
+        </ul>
+      </div>
+
+      <!-- Controls -->
+      <div class="info-card glass-panel">
+        <div class="info-card-header">
+          <span class="icon">🕹️</span>
+          <h2 class="card-title font-display">CONTROLS</h2>
+        </div>
+        <div class="controls-grid">
+          <div class="key-combo">
+            <div class="key-badge">W / ↑</div>
+            <span class="action">Accelerate</span>
+          </div>
+          <div class="key-combo">
+            <div class="key-badge">S / ↓</div>
+            <span class="action">Reverse / Brake</span>
+          </div>
+          <div class="key-combo">
+            <div class="key-badge">A / ←</div>
+            <span class="action">Steer Left</span>
+          </div>
+          <div class="key-combo">
+            <div class="key-badge">D / →</div>
+            <span class="action">Steer Right</span>
+          </div>
+          <div class="key-combo">
+            <div class="key-badge special">SPACE</div>
+            <span class="action">Fire Rocket 🚀</span>
+          </div>
+          <div class="key-combo">
+            <div class="key-badge special">SHIFT</div>
+            <span class="action">Nitro Boost ⚡</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Create Room Modal -->
+  <div *ngIf="showCreateModal()" class="modal-backdrop">
+    <div class="modal-box glass-panel">
+      <h2 class="modal-title font-display">CREATE PRIVATE ROOM</h2>
+      <p class="modal-desc">
+        You will become the room host and receive a 6-character room code to invite your friends.
+      </p>
+
+      <div class="form-group">
+        <label class="form-label">YOUR RACER NAME</label>
+        <input type="text" class="arcade-input" [(ngModel)]="playerName" maxlength="16" />
+      </div>
+
+      <div *ngIf="modalError()" class="modal-error">
+        ⚠️ {{ modalError() }}
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn btn-outline" (click)="showCreateModal.set(false)" [disabled]="isSubmitting()">CANCEL</button>
+        <button class="btn btn-cyan" (click)="submitCreateRoom()" [disabled]="isSubmitting()">
+          {{ isSubmitting() ? 'CREATING...' : 'CREATE ROOM' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Join Room Modal -->
+  <div *ngIf="showJoinModal()" class="modal-backdrop">
+    <div class="modal-box glass-panel">
+      <h2 class="modal-title font-display">JOIN PRIVATE ROOM</h2>
+      <p class="modal-desc">
+        Enter the 6-character room code given to you by the room host.
+      </p>
+
+      <div class="form-group">
+        <label class="form-label">ROOM CODE</label>
+        <input
+          type="text"
+          class="arcade-input code-input"
+          [(ngModel)]="joinCode"
+          maxlength="6"
+          placeholder="e.g. 7K4X9B"
+        />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">YOUR RACER NAME</label>
+        <input type="text" class="arcade-input" [(ngModel)]="playerName" maxlength="16" />
+      </div>
+
+      <div *ngIf="modalError()" class="modal-error">
+        ⚠️ {{ modalError() }}
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn btn-outline" (click)="showJoinModal.set(false)" [disabled]="isSubmitting()">CANCEL</button>
+        <button class="btn btn-pink" (click)="submitJoinRoom()" [disabled]="isSubmitting()">
+          {{ isSubmitting() ? 'JOINING...' : 'JOIN ROOM' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

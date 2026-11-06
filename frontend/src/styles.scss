@@ -1,0 +1,131 @@
+/* Google Fonts & Base Reset */
+@import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700;900&family=Outfit:wght@400;600;700;900&display=swap');
+
+:root {
+  --bg-primary: #0a0c16;
+  --bg-secondary: #121629;
+  --bg-card: rgba(22, 28, 54, 0.85);
+  --bg-card-border: rgba(255, 255, 255, 0.08);
+
+  --accent-cyan: #00f0ff;
+  --accent-pink: #ff007f;
+  --accent-yellow: #ffb800;
+  --accent-green: #00ff88;
+  --accent-red: #ff3344;
+  --accent-blue: #3b82f6;
+
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --text-dim: #64748b;
+
+  --font-display: 'Chakra Petch', sans-serif;
+  --font-body: 'Outfit', sans-serif;
+
+  --shadow-neon: 0 0 20px rgba(0, 240, 255, 0.35);
+  --shadow-pink: 0 0 20px rgba(255, 0, 127, 0.4);
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-main);
+  font-family: var(--font-body);
+  min-height: 100vh;
+  overflow-x: hidden;
+  background-image:
+    radial-gradient(circle at 15% 20%, rgba(0, 240, 255, 0.08) 0%, transparent 40%),
+    radial-gradient(circle at 85% 80%, rgba(255, 0, 127, 0.08) 0%, transparent 40%),
+    linear-gradient(rgba(10, 12, 22, 0.94), rgba(10, 12, 22, 0.94));
+  background-attachment: fixed;
+}
+
+h1, h2, h3, h4, .font-display {
+  font-family: var(--font-display);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+/* Button & interactive component arcade styles */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  padding: 0.75rem 1.6rem;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  text-decoration: none;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    filter: grayscale(0.8);
+  }
+}
+
+.btn-cyan {
+  background: linear-gradient(135deg, var(--accent-cyan), #00a3ff);
+  color: #060913;
+  box-shadow: 0 4px 15px rgba(0, 240, 255, 0.3);
+
+  &:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 25px rgba(0, 240, 255, 0.5);
+  }
+  &:active:not(:disabled) {
+    transform: translateY(0);
+  }
+}
+
+.btn-pink {
+  background: linear-gradient(135deg, var(--accent-pink), #c00060);
+  color: #ffffff;
+  box-shadow: 0 4px 15px rgba(255, 0, 127, 0.3);
+
+  &:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 25px rgba(255, 0, 127, 0.5);
+  }
+}
+
+.btn-outline {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: var(--text-main);
+
+  &:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: var(--accent-cyan);
+    color: var(--accent-cyan);
+  }
+}
+
+/* Glass card */
+.glass-panel {
+  background: var(--bg-card);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--bg-card-border);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+/* Glow effects */
+.glow-cyan {
+  text-shadow: 0 0 12px rgba(0, 240, 255, 0.7);
+}
+.glow-pink {
+  text-shadow: 0 0 12px rgba(255, 0, 127, 0.7);
+}

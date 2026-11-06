@@ -1,0 +1,151 @@
+<!-- Confetti Celebration Canvas -->
+<canvas #confettiCanvas class="confetti-canvas"></canvas>
+
+<div class="results-page">
+  <div class="results-container">
+    <!-- Victory Banner Header -->
+    <header class="results-header" [class.local-victory]="isLocalWinner()" [class.draw]="isDraw()">
+      <div class="trophy-badge font-display">
+        <span>{{ isDraw() ? '⚔️' : isLocalWinner() ? '🏆' : '👑' }}</span>
+        <span>{{ isDraw() ? 'MUTUAL DESTRUCTION' : isLocalWinner() ? 'VICTORY ROYALE' : 'MATCH CHAMPION' }}</span>
+      </div>
+
+      <h1 class="winner-title font-display">
+        <ng-container *ngIf="isDraw()">IT'S A DRAW!</ng-container>
+        <ng-container *ngIf="!isDraw() && isLocalWinner()">YOU WON THE MATCH!</ng-container>
+        <ng-container *ngIf="!isDraw() && !isLocalWinner()">{{ matchResult()?.winnerName }} WINS!</ng-container>
+      </h1>
+
+      <p class="results-sub">
+        LAST KART STANDING • ARENA {{ state.currentRoom()?.code || 'BATTLE' }} CONCLUDED
+      </p>
+    </header>
+
+    <!-- Showcase Grid -->
+    <div class="showcase-grid">
+      <!-- 3D Winner Kart Showcase -->
+      <div class="showcase-card kart-card glass-panel">
+        <div class="card-tag font-display">CHAMPION'S MACHINE</div>
+        <div class="kart-canvas-wrapper">
+          <canvas #kartCanvas class="kart-3d-canvas"></canvas>
+        </div>
+        <div class="winner-info" *ngIf="!isDraw()">
+          <span class="winner-name font-display glow-cyan">{{ matchResult()?.winnerName }}</span>
+          <span class="winner-subtitle">SURVIVED THE GAUNTLET</span>
+        </div>
+        <div class="winner-info" *ngIf="isDraw()">
+          <span class="winner-name font-display">NO SURVIVORS</span>
+          <span class="winner-subtitle">ALL KARTS DESTROYED</span>
+        </div>
+      </div>
+
+      <!-- Match Stats Summary -->
+      <div class="showcase-card stats-card glass-panel">
+        <div class="card-tag font-display">MATCH RECAP</div>
+
+        <div class="stats-grid">
+          <div class="stat-box">
+            <span class="stat-icon">⏱️</span>
+            <span class="stat-label">DURATION</span>
+            <span class="stat-value font-display glow-cyan">{{ formattedDuration() }}</span>
+          </div>
+
+          <div class="stat-box">
+            <span class="stat-icon">🏎️</span>
+            <span class="stat-label">CONTENDERS</span>
+            <span class="stat-value font-display">{{ matchResult()?.leaderboard?.length || 2 }}</span>
+          </div>
+
+          <div class="stat-box">
+            <span class="stat-icon">🎯</span>
+            <span class="stat-label">TOTAL KILLS</span>
+            <span class="stat-value font-display glow-yellow">
+              {{ (matchResult()?.leaderboard?.[0]?.eliminations || 0) + (matchResult()?.leaderboard?.[1]?.eliminations || 0) }}
+            </span>
+          </div>
+
+          <div class="stat-box">
+            <span class="stat-icon">🏆</span>
+            <span class="stat-label">OUTCOME</span>
+            <span class="stat-value font-display font-small glow-pink">{{ matchResult()?.reason }}</span>
+          </div>
+        </div>
+
+        <!-- Quick Rematch Action Panel -->
+        <div class="rematch-box">
+          <h4 class="font-display">READY FOR ANOTHER ROUND?</h4>
+          <p>Rejoin your fellow racers in the room lobby for an immediate rematch!</p>
+          <div class="action-buttons">
+            <button class="btn btn-cyan btn-full" (click)="playAgain()">
+              🔄 PLAY AGAIN (REMATCH)
+            </button>
+            <button class="btn btn-outline btn-full" (click)="returnToHome()">
+              🏠 RETURN TO HOME
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Final Leaderboard Table -->
+    <div class="leaderboard-section glass-panel">
+      <div class="section-header">
+        <h3 class="font-display">🏁 FINAL ARENA STANDINGS</h3>
+        <span class="section-tag font-display">OFFICIAL RESULTS</span>
+      </div>
+
+      <div class="table-container">
+        <table class="leaderboard-table">
+          <thead>
+            <tr>
+              <th>RANK</th>
+              <th>RACER</th>
+              <th>ELIMINATIONS</th>
+              <th>SURVIVAL STATUS</th>
+              <th>FINAL SCORE</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              *ngFor="let p of matchResult()?.leaderboard"
+              [class.winner-row]="p.rank === 1 && !isDraw()"
+              [class.self-row]="p.playerId === socket.socketId()"
+              [class.eliminated-row]="!p.isAlive"
+            >
+              <td class="rank-col font-display">
+                <span *ngIf="p.rank === 1" class="medal">🥇</span>
+                <span *ngIf="p.rank === 2" class="medal">🥈</span>
+                <span *ngIf="p.rank === 3" class="medal">🥉</span>
+                #{{ p.rank }}
+              </td>
+
+              <td class="racer-col">
+                <span class="color-badge" [style.backgroundColor]="p.color"></span>
+                <span class="racer-name">{{ p.playerName }}</span>
+                <span *ngIf="p.playerId === socket.socketId()" class="you-pill font-display">YOU</span>
+              </td>
+
+              <td class="kills-col font-display">
+                <span class="kills-icon">🎯</span>
+                <span>{{ p.eliminations }} KILLS</span>
+              </td>
+
+              <td class="health-col">
+                <span *ngIf="p.isAlive" class="status-badge alive font-display">
+                  ❤️ {{ p.health }} HP
+                </span>
+                <span *ngIf="!p.isAlive" class="status-badge eliminated font-display">
+                  💀 ELIMINATED
+                </span>
+              </td>
+
+              <td class="score-col font-display">
+                {{ p.score }} PTS
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

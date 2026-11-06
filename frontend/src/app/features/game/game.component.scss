@@ -1,0 +1,751 @@
+.game-viewport {
+  position: relative;
+  width: 100vw;
+  height: calc(100vh - 70px);
+  overflow: hidden;
+  background-color: #0a0c16;
+}
+
+.webgl-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Damage Screen Flash */
+.damage-flash-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    circle at center,
+    transparent 40%,
+    rgba(255, 0, 50, 0.4) 80%,
+    rgba(255, 0, 0, 0.75) 100%
+  );
+  box-shadow: inset 0 0 100px rgba(255, 0, 0, 0.8);
+  z-index: 50;
+  animation: flashDamage 0.28s ease-out;
+}
+
+@keyframes flashDamage {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* Eliminated Spectator Banner */
+.eliminated-banner {
+  position: absolute;
+  top: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  padding: 1rem 2rem;
+  border-color: rgba(255, 51, 68, 0.6);
+  background: rgba(30, 8, 12, 0.9);
+  box-shadow: 0 0 35px rgba(255, 51, 68, 0.4);
+  z-index: 60;
+  animation: dropIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+  .skull-icon {
+    font-size: 2.2rem;
+  }
+
+  h3 {
+    font-size: 1.3rem;
+    color: #ff3344;
+    letter-spacing: 0.08em;
+  }
+
+  p {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+  }
+}
+
+@keyframes dropIn {
+  from {
+    transform: translate(-50%, -30px);
+    opacity: 0;
+  }
+  to {
+    transform: translate(-50%, 0);
+    opacity: 1;
+  }
+}
+
+/* Fullscreen HUD */
+.hud-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 1.5rem;
+}
+
+.hud-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1.5rem;
+
+  > * {
+    pointer-events: auto;
+  }
+}
+
+/* Player Health Card */
+.player-hud-card {
+  padding: 1rem 1.4rem;
+  min-width: 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  border-color: rgba(0, 240, 255, 0.2);
+
+  &.eliminated {
+    border-color: rgba(255, 51, 68, 0.4);
+    opacity: 0.85;
+  }
+}
+
+.hud-player-info {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.hud-color-indicator {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  box-shadow: 0 0 10px currentColor;
+}
+
+.hud-name-wrapper {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.hud-player-name {
+  font-weight: 800;
+  font-size: 1.1rem;
+  letter-spacing: 0.04em;
+  color: var(--text-main);
+}
+
+.hud-role-tag {
+  font-size: 0.65rem;
+  letter-spacing: 0.15em;
+  color: var(--accent-yellow);
+}
+
+.hud-kills-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+  background: rgba(255, 184, 0, 0.15);
+  border: 1px solid rgba(255, 184, 0, 0.3);
+  color: var(--accent-yellow);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.health-bar-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.health-bar-track {
+  width: 100%;
+  height: 12px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.health-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #00ff88, #00e0ff);
+  border-radius: 999px;
+  transition: width 0.2s ease-out, background 0.3s ease;
+  box-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+
+  &.med {
+    background: linear-gradient(90deg, #ffb800, #ff8800);
+    box-shadow: 0 0 10px rgba(255, 184, 0, 0.5);
+  }
+
+  &.low {
+    background: linear-gradient(90deg, #ff3344, #ff007f);
+    box-shadow: 0 0 10px rgba(255, 51, 68, 0.6);
+  }
+}
+
+.health-text {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  letter-spacing: 0.05em;
+
+  strong {
+    color: var(--text-main);
+
+    &.dead {
+      color: var(--accent-red);
+    }
+  }
+}
+
+/* Match Card */
+.match-hud-card {
+  padding: 0.85rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 220px;
+}
+
+.hud-room-code {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.85rem;
+
+  .label {
+    color: var(--text-dim);
+  }
+
+  .code {
+    font-size: 1.1rem;
+    letter-spacing: 0.15em;
+    color: var(--accent-yellow);
+  }
+}
+
+.hud-players-count {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  display: flex;
+  justify-content: space-between;
+
+  strong {
+    font-size: 0.95rem;
+  }
+}
+
+.hud-top-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.3rem;
+}
+
+.btn-hud-icon {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--text-main);
+  font-family: var(--font-display);
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.35rem 0.65rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    background: rgba(0, 240, 255, 0.15);
+    border-color: var(--accent-cyan);
+    color: var(--accent-cyan);
+  }
+
+  &.btn-hud-danger:hover {
+    background: rgba(255, 51, 68, 0.2);
+    border-color: var(--accent-red);
+    color: var(--accent-red);
+  }
+}
+
+/* Speed Lines on Boost */
+.boost-speed-lines {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    circle at center,
+    transparent 55%,
+    rgba(0, 240, 255, 0.18) 85%,
+    rgba(0, 163, 255, 0.3) 100%
+  );
+  box-shadow: inset 0 0 80px rgba(0, 240, 255, 0.4);
+  animation: boostFlash 0.12s infinite alternate;
+}
+
+@keyframes boostFlash {
+  from {
+    opacity: 0.7;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Bottom HUD */
+.hud-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 1.5rem;
+
+  > * {
+    pointer-events: auto;
+  }
+}
+
+/* Skills / Cooldowns Card */
+.skills-card {
+  padding: 0.75rem 1.25rem;
+  display: flex;
+  gap: 1.25rem;
+
+  &.disabled {
+    opacity: 0.4;
+    pointer-events: none;
+  }
+}
+
+.skill-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  user-select: none;
+
+  .skill-icon-wrapper {
+    width: 52px;
+    height: 52px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.15s, border-color 0.15s;
+
+    .skill-icon {
+      font-size: 1.6rem;
+      z-index: 1;
+    }
+
+    .cooldown-overlay {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(6, 8, 16, 0.85);
+      border-top: 2px solid var(--accent-pink);
+      transition: height 0.05s linear;
+    }
+  }
+
+  &:hover .skill-icon-wrapper {
+    transform: scale(1.05);
+  }
+
+  &.ready .skill-icon-wrapper {
+    border-color: var(--accent-cyan);
+    box-shadow: 0 0 14px rgba(0, 240, 255, 0.35);
+  }
+
+  &.active .skill-icon-wrapper {
+    background: rgba(0, 240, 255, 0.25);
+    border-color: #00f0ff;
+    box-shadow: 0 0 22px rgba(0, 240, 255, 0.85);
+  }
+
+  .skill-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+
+  .skill-key {
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: var(--accent-cyan);
+    background: rgba(0, 240, 255, 0.1);
+    padding: 0.1rem 0.45rem;
+    border-radius: 4px;
+    align-self: flex-start;
+  }
+
+  .skill-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-muted);
+  }
+}
+
+/* Speedometer Card */
+.speedometer-card {
+  padding: 1rem 1.5rem;
+  min-width: 170px;
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.2rem;
+
+  .speed-number {
+    font-size: 3.2rem;
+    line-height: 1;
+    font-weight: 900;
+    color: var(--accent-cyan);
+  }
+
+  .speed-unit {
+    font-size: 0.75rem;
+    letter-spacing: 0.15em;
+    color: var(--text-dim);
+    font-weight: 700;
+  }
+
+  .speed-bar {
+    width: 100%;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-top: 0.4rem;
+
+    .speed-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #00f0ff, #ff007f);
+      border-radius: 3px;
+      transition: width 0.05s linear;
+    }
+  }
+}
+
+/* Controls Modal */
+.modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(6, 8, 16, 0.85);
+  backdrop-filter: blur(8px);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}
+
+.modal-box {
+  width: 100%;
+  max-width: 480px;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.controls-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.control-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-main);
+  padding: 0.5rem 0.75rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 6px;
+
+  .key-badge {
+    font-family: var(--font-display);
+    font-size: 0.8rem;
+    font-weight: 700;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--accent-cyan);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+
+    &.special {
+      color: var(--accent-pink);
+      border-color: rgba(255, 0, 127, 0.3);
+    }
+  }
+}
+
+.btn-full {
+  width: 100%;
+}
+
+/* Mini Leaderboard */
+.hud-top-right-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  align-items: flex-end;
+}
+
+.mini-leaderboard {
+  min-width: 240px;
+  max-width: 280px;
+  padding: 0.6rem 0.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  border-color: rgba(0, 240, 255, 0.2);
+
+  .mini-lb-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    color: var(--accent-cyan);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    padding-bottom: 0.25rem;
+
+    .mini-lb-hint {
+      font-size: 0.6rem;
+      padding: 0.1rem 0.35rem;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+      color: var(--text-muted);
+    }
+  }
+
+  .mini-lb-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .mini-lb-row {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.2rem 0.35rem;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.03);
+
+    &.self {
+      border: 1px solid rgba(0, 240, 255, 0.4);
+      background: rgba(0, 240, 255, 0.06);
+    }
+
+    &.eliminated {
+      opacity: 0.5;
+      text-decoration: line-through;
+    }
+
+    .mini-lb-rank {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--accent-yellow);
+      min-width: 22px;
+    }
+
+    .mini-lb-color {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .mini-lb-name {
+      flex: 1;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      color: var(--text-main);
+    }
+
+    .mini-lb-kills {
+      font-size: 0.7rem;
+      color: var(--accent-yellow);
+    }
+
+    .mini-lb-health {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--accent-green);
+
+      &.dead {
+        color: var(--accent-pink);
+      }
+    }
+  }
+}
+
+/* Full Leaderboard Modal Overlay */
+.leaderboard-modal {
+  max-width: 680px;
+
+  .lb-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 0.75rem;
+
+    h2 {
+      font-size: 1.4rem;
+      color: var(--accent-yellow);
+    }
+
+    .lb-modal-sub {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+  }
+
+  .lb-table-wrapper {
+    max-height: 50vh;
+    overflow-y: auto;
+  }
+
+  .lb-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+
+    th {
+      text-align: left;
+      font-family: var(--font-display);
+      font-size: 0.7rem;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      padding: 0.6rem 0.75rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    td {
+      padding: 0.65rem 0.75rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      color: var(--text-main);
+    }
+
+    tr.self-row {
+      background: rgba(0, 240, 255, 0.08);
+      border-left: 3px solid var(--accent-cyan);
+    }
+
+    tr.eliminated-row {
+      opacity: 0.6;
+    }
+
+    .rank-cell {
+      font-weight: 800;
+      color: var(--accent-yellow);
+
+      .medal {
+        margin-right: 0.25rem;
+      }
+    }
+
+    .name-cell {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+
+      .color-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+      }
+
+      .name-text {
+        font-weight: 700;
+      }
+
+      .you-badge {
+        font-size: 0.65rem;
+        padding: 0.1rem 0.35rem;
+        background: var(--accent-cyan);
+        color: #000;
+        border-radius: 3px;
+        font-weight: 900;
+      }
+    }
+
+    .kills-cell {
+      font-weight: 700;
+      color: var(--accent-yellow);
+    }
+
+    .health-cell {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+
+      .lb-health-bar {
+        width: 60px;
+        height: 6px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 999px;
+        overflow: hidden;
+
+        .lb-health-fill {
+          height: 100%;
+          background: var(--accent-green);
+
+          &.low {
+            background: var(--accent-pink);
+          }
+        }
+      }
+    }
+
+    .score-cell {
+      font-weight: 800;
+      color: var(--accent-cyan);
+    }
+
+    .status-pill {
+      font-size: 0.7rem;
+      font-weight: 800;
+      font-family: var(--font-display);
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+
+      &.alive {
+        background: rgba(0, 255, 136, 0.15);
+        color: #00ff88;
+        border: 1px solid rgba(0, 255, 136, 0.3);
+      }
+
+      &.dead {
+        background: rgba(255, 51, 68, 0.15);
+        color: #ff3344;
+        border: 1px solid rgba(255, 51, 68, 0.3);
+      }
+    }
+  }
+}

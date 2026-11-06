@@ -1,0 +1,27 @@
+{
+  "name": "kart-battle-arena",
+  "version": "1.0.0",
+  "description": "3D Browser-based Multiplayer Kart Battle Game",
+  "private": true,
+  "scripts": {
+    "install:all": "npm --prefix shared install && npm --prefix backend install && npm --prefix frontend install",
+    "build:shared": "npm --prefix shared run build",
+    "build:backend": "npm --prefix backend run build",
+    "build:frontend": "npm --prefix frontend run build",
+    "build": "npm run build:shared && npm run build:backend && npm run build:frontend",
+    "dev": "concurrently -n \"BACKEND,FRONTEND\" -c \"blue,magenta\" \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "npm --prefix backend run dev",
+    "dev:frontend": "npm --prefix frontend run start",
+    "start:backend": "npm --prefix backend run start",
+    "start:frontend": "npm --prefix frontend run start",
+    "test:phase2": "node test-phase2.js",
+    "test:physics": "node test-physics.js",
+    "test:sync": "node test-sync.js",
+    "test:weapons": "node test-weapons.js",
+    "test:phase7": "node test-phase7.js",
+    "test:e2e": "node test-e2e.js"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}

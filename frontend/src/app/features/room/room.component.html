@@ -1,0 +1,152 @@
+<div class="room-page">
+  <!-- Countdown Overlay -->
+  <div *ngIf="countdownValue() !== null" class="countdown-overlay">
+    <div class="countdown-card glass-panel">
+      <div class="countdown-label font-display">MATCH STARTING IN</div>
+      <div class="countdown-number font-display glow-cyan">{{ countdownValue() }}</div>
+      <p class="countdown-sub">Get your engines ready!</p>
+    </div>
+  </div>
+
+  <div class="room-card glass-panel">
+    <!-- Header -->
+    <div class="room-header">
+      <div class="header-left">
+        <span class="room-tag">PRIVATE MULTIPLAYER ROOM</span>
+        <div class="code-display">
+          <span class="code-label font-display">ROOM CODE:</span>
+          <span class="room-code font-display glow-cyan">{{ room()?.code || '------' }}</span>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <button class="btn btn-outline btn-sm" (click)="copyRoomCode()">
+          <span>📋</span> {{ codeCopied() ? 'COPIED!' : 'COPY CODE' }}
+        </button>
+        <button class="btn btn-outline btn-sm" (click)="copyInviteLink()">
+          <span>🔗</span> {{ linkCopied() ? 'LINK COPIED!' : 'INVITE LINK' }}
+        </button>
+        <button class="btn btn-outline btn-sm btn-danger" (click)="leaveRoom()">
+          <span>🚪</span> LEAVE ROOM
+        </button>
+      </div>
+    </div>
+
+    <!-- Capacity & Status Banner -->
+    <div class="status-banner">
+      <div class="capacity-info">
+        <span class="font-display">RACERS CONNECTED:</span>
+        <strong class="capacity-count">{{ room()?.players?.length || 0 }} / {{ room()?.maxPlayers || 8 }}</strong>
+      </div>
+      <div class="min-players-hint" *ngIf="(room()?.players?.length || 0) < (room()?.minPlayers || 2)">
+        ⚠️ Minimum 2 players required to start the match.
+      </div>
+      <div class="ready-hint" *ngIf="(room()?.players?.length || 0) >= (room()?.minPlayers || 2) && !state.canStartMatch()">
+        Waiting for all players to click <strong>READY UP</strong>.
+      </div>
+      <div class="ready-all-hint ok" *ngIf="state.canStartMatch()">
+        ✅ All racers are ready! Host can start the match.
+      </div>
+    </div>
+
+    <!-- Players Grid (8 Slots) -->
+    <div class="slots-grid">
+      <div
+        *ngFor="let slotIndex of totalSlots"
+        class="slot-card"
+        [class.occupied]="getPlayerAtSlot(slotIndex)"
+        [class.is-ready]="getPlayerAtSlot(slotIndex)?.isReady"
+        [class.is-self]="getPlayerAtSlot(slotIndex) && isLocalPlayer(getPlayerAtSlot(slotIndex)!)"
+      >
+        <!-- Occupied Slot -->
+        <ng-container *ngIf="getPlayerAtSlot(slotIndex) as player">
+          <div class="player-top">
+            <div class="kart-badge" [style.backgroundColor]="player.color">
+              <span class="kart-icon">🏎️</span>
+            </div>
+
+            <div class="player-meta">
+              <div class="name-row">
+                <span class="player-name">{{ player.name }}</span>
+                <span *ngIf="player.isHost" class="tag host-tag">HOST</span>
+                <span *ngIf="isLocalPlayer(player)" class="tag you-tag">YOU</span>
+              </div>
+              <span class="player-joined">Slot #{{ slotIndex + 1 }}</span>
+            </div>
+
+            <!-- Host Kick Button -->
+            <button
+              *ngIf="state.isHost() && !player.isHost"
+              class="btn-kick"
+              title="Kick player"
+              (click)="kickPlayer(player)"
+            >
+              ✕
+            </button>
+          </div>
+
+          <div class="player-bottom">
+            <span class="ready-status" [class.ready]="player.isReady">
+              {{ player.isReady ? 'READY' : 'NOT READY' }}
+            </span>
+          </div>
+        </ng-container>
+
+        <!-- Empty Slot -->
+        <ng-container *ngIf="!getPlayerAtSlot(slotIndex)">
+          <div class="empty-slot">
+            <span class="slot-num font-display">SLOT {{ slotIndex + 1 }}</span>
+            <span class="empty-text">WAITING FOR RACER...</span>
+          </div>
+        </ng-container>
+      </div>
+    </div>
+
+    <!-- Bottom Controls & Customizer -->
+    <div class="room-bottom">
+      <!-- Local Player Customizer -->
+      <div class="local-customizer glass-panel">
+        <div class="customizer-title font-display">CUSTOMIZE YOUR KART</div>
+        <div class="color-palette">
+          <button
+            *ngFor="let color of availableColors"
+            class="color-dot"
+            [style.backgroundColor]="color"
+            [class.active]="state.profile().color === color"
+            (click)="onColorSelect(color)"
+          ></button>
+        </div>
+      </div>
+
+      <!-- Ready & Host Controls -->
+      <div class="controls-panel">
+        <!-- Ready Button -->
+        <button
+          class="btn ready-toggle-btn"
+          [class.btn-green]="!state.isReady()"
+          [class.btn-outline]="state.isReady()"
+          (click)="toggleReady()"
+        >
+          <span>{{ state.isReady() ? '✓ READY' : '⚡ READY UP' }}</span>
+        </button>
+
+        <!-- Host Start Button -->
+        <div class="host-start-wrapper" *ngIf="state.isHost()">
+          <button
+            class="btn btn-cyan btn-start"
+            [disabled]="!state.canStartMatch()"
+            (click)="startGame()"
+          >
+            <span>🚀 START MATCH</span>
+          </button>
+          <div *ngIf="!state.canStartMatch()" class="start-hint">
+            <span *ngIf="(room()?.players?.length || 0) < 2">Need 2+ players</span>
+            <span *ngIf="(room()?.players?.length || 0) >= 2 && state.unreadyPlayerNames().length > 0">
+              Waiting for: {{ state.unreadyPlayerNames().join(', ') }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
